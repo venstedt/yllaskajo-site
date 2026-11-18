@@ -624,20 +624,36 @@ BUILDERS = {"home": page_home, "cabin": page_cabin, "summer": page_summer, "wint
 
 SCRIPT = """<script>
 (() => {
-    // Uusi sivu aukeaa aina alusta (paitsi #ankkurilinkit ja selaimen Takaisin-painike).
-    const nav = performance.getEntriesByType('navigation')[0];
-    if (!location.hash && (!nav || nav.type === 'navigate')) {
-        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-        const top = () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    // Vieritys: sivuston sisäinen linkki avaa sivun alusta, Takaisin/Eteenpäin (selain tai hiiri)
+    // palauttaa kohdan, jossa oltiin. Toimii myös upotetussa esikatselussa, joka säilyttää vierityksen.
+    const store = {
+        get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+        set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) {} },
+        del: k => { try { sessionStorage.removeItem(k); } catch (e) {} },
+    };
+    const here = location.pathname;
+    const fromLink = store.get('yk-top') === here;
+    store.del('yk-top');
+    const saved = store.get('yk-scroll:' + here);
+    const target = location.hash ? null : (fromLink ? 0 : (saved !== null ? +saved : null));
+    if (target !== null) {
         let userMoved = false;
         ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(e =>
             window.addEventListener(e, () => { userMoved = true; }, { once: true, passive: true }));
-        top();
-        // Upotettu esikatselu voi palauttaa vierityksen vasta latauksen jälkeen: varmistetaan hetken ajan.
-        window.addEventListener('load', () => {
-            [0, 100, 300, 700].forEach(ms => setTimeout(() => { if (!userMoved) top(); }, ms));
-        });
+        const go = () => { if (!userMoved) window.scrollTo({ top: target, left: 0, behavior: 'instant' }); };
+        go();
+        window.addEventListener('load', () => [0, 100, 300, 700].forEach(ms => setTimeout(go, ms)));
     }
+    document.addEventListener('click', e => {
+        const a = e.target.closest('a[href]');
+        if (!a || a.target === '_blank' || a.origin !== location.origin || a.hash) return;
+        store.set('yk-top', a.pathname);
+    });
+    let t;
+    window.addEventListener('scroll', () => {
+        clearTimeout(t);
+        t = setTimeout(() => store.set('yk-scroll:' + here, String(Math.round(window.scrollY))), 150);
+    }, { passive: true });
     const bar = document.querySelector('.topbar');
     const hero = document.querySelector('.hero');
     const onScroll = () => bar.classList.toggle('solid', !hero || window.scrollY > hero.offsetHeight - 80);
