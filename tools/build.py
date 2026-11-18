@@ -15,7 +15,16 @@ AIRBNB = {"fi": "https://www.airbnb.fi/rooms/1505850569308831000",
           "en": "https://www.airbnb.com/rooms/1505850569308831000"}
 BOOKING = {"fi": "https://www.booking.com/hotel/fi/yllas-kajo.fi.html",
            "en": "https://www.booking.com/hotel/fi/yllas-kajo.en-gb.html"}
-EMAIL = "yllaskajo@gmail.com"
+# Sähköpostiosoitetta ei kirjoiteta HTML:ään, jotta botit eivät poimi sitä.
+# Osoite kootaan selaimessa (ks. SCRIPT, emailAddress) vasta kun kävijä painaa nappia.
+
+
+def email_button(lang, cls="btn btn-ghost", label=None, with_icon=True):
+    t = T[lang]
+    lbl = label or t["show_email"]
+    ic = icon("mail") if with_icon else ""
+    return (f'<button type="button" class="{cls} email-btn" data-subject="{escape(t["mail_subject"])}" '
+            f'data-copied="{escape(t["email_copied"])}">{ic}<span>{lbl}</span></button>')
 INSTAGRAM = "https://www.instagram.com/yllaskajo/"
 FACEBOOK = "https://www.facebook.com/profile.php?id=61579861190695"
 MAP = "https://www.google.com/maps/search/?api=1&query=Yll%C3%A4s%20Kajo%2C%20Yll%C3%A4sj%C3%A4rvi"
@@ -132,6 +141,8 @@ T = {
         "cta_text": "Näet vapaat päivät ja hinnat Airbnb:ssä ja Booking.comissa. Kysy rohkeasti myös suoraan meiltä – vastaamme yleensä tunnin sisällä.",
         "ask": "Kysy meiltä",
         "mail_subject": "Varauskysely Ylläs Kajo",
+        "show_email": "Näytä sähköposti",
+        "email_copied": "Osoite kopioitu leikepöydälle",
         "footer_tag": "Tunturien rauhaa • Lapin elämyksiä",
         "footer_hosts": "Majoittajina Riikka & Valtteri",
         "draft": "LUONNOS",
@@ -156,6 +167,8 @@ T = {
         "cta_text": "See available dates and prices on Airbnb and Booking.com. You're also welcome to ask us directly – we usually reply within an hour.",
         "ask": "Ask us",
         "mail_subject": "Booking enquiry Ylläs Kajo",
+        "show_email": "Show email address",
+        "email_copied": "Address copied to clipboard",
         "footer_tag": "Fellside tranquillity • Lapland adventures",
         "footer_hosts": "Hosted by Riikka & Valtteri",
         "draft": "DRAFT",
@@ -210,7 +223,7 @@ def cta_block(lang):
     <div class="hero-actions">
         <a class="btn" href="{AIRBNB[lang]}" target="_blank" rel="noopener">Airbnb</a>
         <a class="btn" href="{BOOKING[lang]}" target="_blank" rel="noopener">Booking.com</a>
-        <a class="btn btn-ghost" href="mailto:{EMAIL}?subject={t["mail_subject"].replace(" ", "%20")}">{icon("mail")}{t["ask"]}</a>
+        {email_button(lang, label=t["ask"])}
     </div>
 </aside>'''
 
@@ -584,7 +597,7 @@ def page_book(lang, p):
     <div class="channels">
         <a class="channel" href="{AIRBNB[lang]}" target="_blank" rel="noopener"><strong>Airbnb</strong><span>★ 5,0</span><span class="go">{"Varaa Airbnb:ssä" if fi else "Book on Airbnb"} →</span></a>
         <a class="channel" href="{BOOKING[lang]}" target="_blank" rel="noopener"><strong>Booking.com</strong><span>9,2</span><span class="go">{"Varaa Bookingissa" if fi else "Book on Booking.com"} →</span></a>
-        <a class="channel" href="mailto:{EMAIL}?subject={t["mail_subject"].replace(" ", "%20")}"><strong>{"Kysy meiltä" if fi else "Ask us"}</strong><span>{EMAIL}</span><span class="go">{"Lähetä sähköpostia" if fi else "Send an email"} →</span></a>
+        <div class="channel"><strong>{"Kysy meiltä" if fi else "Ask us"}</strong><span>{"Vastaamme yleensä tunnin sisällä." if fi else "We usually reply within an hour."}</span><span class="go">{email_button(lang, cls="btn btn-line")}</span></div>
     </div>
 </section>
 <section aria-labelledby="info-title" style="padding-top:0">
@@ -624,6 +637,26 @@ BUILDERS = {"home": page_home, "cabin": page_cabin, "summer": page_summer, "wint
 
 SCRIPT = """<script>
 (() => {
+    // Sähköposti: osoite kootaan vasta painalluksesta. 1. painallus näyttää ja kopioi, 2. avaa sähköpostiohjelman.
+    const emailAddress = () => ['yllas', 'kajo'].join('') + String.fromCharCode(64) + ['gmail', 'com'].join('.');
+    document.querySelectorAll('.email-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const addr = emailAddress();
+            const a = document.createElement('a');
+            a.className = btn.className.replace('email-btn', 'email-shown');
+            a.href = 'mailto:' + addr + '?subject=' + encodeURIComponent(btn.dataset.subject || '');
+            a.textContent = addr;
+            const note = document.createElement('span');
+            note.className = 'email-note';
+            note.setAttribute('role', 'status');
+            btn.replaceWith(a);
+            a.after(note);
+            a.focus();
+            try {
+                navigator.clipboard.writeText(addr).then(() => { note.textContent = btn.dataset.copied; }, () => {});
+            } catch (e) {}
+        });
+    });
     // Vieritys: sivuston sisäinen linkki avaa sivun alusta, Takaisin/Eteenpäin (selain tai hiiri)
     // palauttaa kohdan, jossa oltiin. Toimii myös upotetussa esikatselussa, joka säilyttää vierityksen.
     const store = {
@@ -733,7 +766,8 @@ def render(key, lang):
         <a href="{INSTAGRAM}" target="_blank" rel="noopener" aria-label="Instagram">{icon("instagram", "")}</a>
         <a href="{FACEBOOK}" target="_blank" rel="noopener" aria-label="Facebook">{icon("facebook", "")}</a>
     </div>
-    <p>{t["footer_hosts"]} · <a href="mailto:{EMAIL}">{EMAIL}</a></p>
+    <p>{t["footer_hosts"]}</p>
+    <p>{email_button(lang, cls="email-link", with_icon=False)}</p>
     <p>Ylläsjärvi, {"Lappi" if lang == "fi" else "Finnish Lapland"}</p>
 </footer>
 <nav class="dock" aria-label="{"Sivut" if lang == "fi" else "Pages"}">{dock}</nav>
