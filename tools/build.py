@@ -433,7 +433,9 @@ def page_summer(lang, p):
          "The Ylläs bike park was voted Finland's best in 2024 and 2025. Trails start almost from the door, and bikes stay safe overnight in the lockable storage.",
          ["Gondoli ja bikepark noin 1 km päässä" if fi else "Gondola and bike park about 1 km away",
           "Maastopolut ja sorareitit Ylläksen ympäri" if fi else "Singletrack and gravel routes around Ylläs",
-          "Pyörävuokraamot Ylläsjärvellä ja Äkäslompolossa" if fi else "Bike rentals in Ylläsjärvi and Äkäslompolo"]),
+          "Pyörävuokraamot Ylläsjärvellä ja Äkäslompolossa" if fi else "Bike rentals in Ylläsjärvi and Äkäslompolo"],
+         ("https://yllasbikepark.fi/" if fi else "https://yllasbikepark.fi/en",
+          "Tutustu Ylläs Bike Parkiin" if fi else "Visit Ylläs Bike Park")),
         ("yllas-kajo-11", "Vaellus ja tunturit" if fi else "Hiking & fells",
          "Pallas-Yllästunturin kansallispuiston polut, tunturihuiput ja kirkkaat järvet ovat lyhyen matkan päässä. Keskikesällä aurinko ei laske lainkaan." if fi else
          "The trails, summits and clear lakes of Pallas-Yllästunturi National Park are a short trip away. In midsummer the sun doesn't set at all.",
@@ -460,11 +462,15 @@ def page_summer(lang, p):
           "Kysy viikkohintaa" if fi else "Ask about weekly rates"]),
     ]
     html = ""
-    for i, (im, h, txt, items) in enumerate(blocks):
+    for i, (im, h, txt, items, *link) in enumerate(blocks):
         flip = " flip" if i % 2 else ""
+        more = ""
+        if link:
+            url, label = link[0]
+            more = f'<a class="btn btn-line split-link" href="{url}" target="_blank" rel="noopener">{label} →</a>'
         html += f'''<section class="split{flip}">
     {img(im, h, p, "-800")}
-    <div><h2>{h}</h2><p>{txt}</p><ul>{"".join(f"<li>{x}</li>" for x in items)}</ul></div>
+    <div><h2>{h}</h2><p>{txt}</p><ul>{"".join(f"<li>{x}</li>" for x in items)}</ul>{more}</div>
 </section>'''
     return f'''{hero("Kesä &amp; syksy Ylläksellä" if fi else "Summer &amp; autumn in Ylläs",
                  "Yötön yö, Suomen paras bikepark ja tunturipolut – kaikki kilometrin säteellä mökistä." if fi else

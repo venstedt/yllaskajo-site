@@ -467,6 +467,7 @@ section {
 .split p { margin: 0 0 12px; color: var(--muted); }
 .split ul { margin: 0; padding-left: 20px; color: var(--muted); }
 .split li { margin-bottom: 6px; }
+.split-link { margin-top: 18px; }
 @media (min-width: 860px) {
     .split { grid-template-columns: 1fr 1fr; gap: 56px; }
     .split.flip > :first-child { order: 2; }
