@@ -624,6 +624,9 @@ BUILDERS = {"home": page_home, "cabin": page_cabin, "summer": page_summer, "wint
 
 SCRIPT = """<script>
 (() => {
+    // Uusi sivu aukeaa aina alusta (paitsi #ankkurilinkit ja selaimen Takaisin-painike).
+    const nav = performance.getEntriesByType('navigation')[0];
+    if (!location.hash && (!nav || nav.type === 'navigate')) window.scrollTo(0, 0);
     const bar = document.querySelector('.topbar');
     const hero = document.querySelector('.hero');
     const onScroll = () => bar.classList.toggle('solid', !hero || window.scrollY > hero.offsetHeight - 80);
