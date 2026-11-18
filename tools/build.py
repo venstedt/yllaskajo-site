@@ -511,7 +511,9 @@ def page_winter(lang, p):
          "Ylläs is one of Finland's largest ski resorts. The gondola base station is about a kilometre from the cabin.",
          ["Ylläs Ski Resort Ylläsjärvi noin 1 km" if fi else "Ylläs Ski Resort Ylläsjärvi about 1 km",
           "Välinevuokraamot lähellä rinteitä" if fi else "Equipment rentals near the slopes",
-          "Suksivarasto ja voiteluteline pihalla" if fi else "Ski storage and waxing stand in the yard"]),
+          "Suksivarasto ja voiteluteline pihalla" if fi else "Ski storage and waxing stand in the yard"],
+         ("https://ski.yllas.fi/" if fi else "https://ski.yllas.fi/en/",
+          "Tutustu Ylläksen hiihtokeskukseen" if fi else "Visit Ylläs Ski Resort")),
         ("tunturi_1", "Hiihto" if fi else "Cross-country skiing",
          "Ylläksen laajat latuverkostot alkavat lähes ovelta: ladulle on alle puoli kilometriä. Latukahvilat palkitsevat matkalla." if fi else
          "The extensive Ylläs ski-track network starts almost at your door: the nearest track is under 500 m away. Trail cafés reward you along the way.",
@@ -532,11 +534,15 @@ def page_winter(lang, p):
           "Sähköauton lataus pihassa" if fi else "EV charging in the yard"]),
     ]
     html = ""
-    for i, (im, h, txt, items) in enumerate(blocks):
+    for i, (im, h, txt, items, *link) in enumerate(blocks):
         flip = " flip" if i % 2 else ""
+        more = ""
+        if link:
+            url, label = link[0]
+            more = f'<a class="btn btn-line split-link" href="{url}" target="_blank" rel="noopener">{label} →</a>'
         html += f'''<section class="split{flip}">
     {img(im, h, p, "-800")}
-    <div><h2>{h}</h2><p>{txt}</p><ul>{"".join(f"<li>{x}</li>" for x in items)}</ul></div>
+    <div><h2>{h}</h2><p>{txt}</p><ul>{"".join(f"<li>{x}</li>" for x in items)}</ul>{more}</div>
 </section>'''
     return f'''{hero("Talvi Ylläksellä" if fi else "Winter in Ylläs",
                  "Rinteet kilometrin päässä, latu lähes ovelta ja revontulet pihalla." if fi else
