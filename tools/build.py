@@ -582,8 +582,8 @@ def page_book(lang, p):
     <p class="eyebrow">{"Varauskanavat" if fi else "Where to book"}</p>
     <h2 class="title" id="channels-title">{"Vapaat päivät ja hinnat" if fi else "Availability and prices"}</h2>
     <div class="channels">
-        <a class="channel" href="{AIRBNB[lang]}" target="_blank" rel="noopener"><strong>Airbnb</strong><span>★ 5,0 · {"5 arviota" if fi else "5 reviews"}</span><span class="go">{"Varaa Airbnb:ssä" if fi else "Book on Airbnb"} →</span></a>
-        <a class="channel" href="{BOOKING[lang]}" target="_blank" rel="noopener"><strong>Booking.com</strong><span>9,2 · {"9 arviota" if fi else "9 reviews"}</span><span class="go">{"Varaa Bookingissa" if fi else "Book on Booking.com"} →</span></a>
+        <a class="channel" href="{AIRBNB[lang]}" target="_blank" rel="noopener"><strong>Airbnb</strong><span>★ 5,0</span><span class="go">{"Varaa Airbnb:ssä" if fi else "Book on Airbnb"} →</span></a>
+        <a class="channel" href="{BOOKING[lang]}" target="_blank" rel="noopener"><strong>Booking.com</strong><span>9,2</span><span class="go">{"Varaa Bookingissa" if fi else "Book on Booking.com"} →</span></a>
         <a class="channel" href="mailto:{EMAIL}?subject={t["mail_subject"].replace(" ", "%20")}"><strong>{"Kysy meiltä" if fi else "Ask us"}</strong><span>{EMAIL}</span><span class="go">{"Lähetä sähköpostia" if fi else "Send an email"} →</span></a>
     </div>
 </section>
