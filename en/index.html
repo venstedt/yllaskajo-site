@@ -150,7 +150,18 @@
 (() => {
     // Uusi sivu aukeaa aina alusta (paitsi #ankkurilinkit ja selaimen Takaisin-painike).
     const nav = performance.getEntriesByType('navigation')[0];
-    if (!location.hash && (!nav || nav.type === 'navigate')) window.scrollTo(0, 0);
+    if (!location.hash && (!nav || nav.type === 'navigate')) {
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        const top = () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        let userMoved = false;
+        ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach(e =>
+            window.addEventListener(e, () => { userMoved = true; }, { once: true, passive: true }));
+        top();
+        // Upotettu esikatselu voi palauttaa vierityksen vasta latauksen jälkeen: varmistetaan hetken ajan.
+        window.addEventListener('load', () => {
+            [0, 100, 300, 700].forEach(ms => setTimeout(() => { if (!userMoved) top(); }, ms));
+        });
+    }
     const bar = document.querySelector('.topbar');
     const hero = document.querySelector('.hero');
     const onScroll = () => bar.classList.toggle('solid', !hero || window.scrollY > hero.offsetHeight - 80);
