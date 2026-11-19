@@ -262,7 +262,7 @@ def page_home(lang, p):
     features = [
         ("gondola", "1 km gondolille" if fi else "1 km to the gondola",
          "Ylläksen gondolihissin ala-asema noin kilometrin päässä." if fi else "The Ylläs gondola base station is about a kilometre away."),
-        ("ski", "Ladut ja polut ovelta" if fi else "Trails from the door",
+        ("ski", "Ladut ja polut lähellä" if fi else "Trails nearby",
          "Hiihtoladuille ja pyöräreiteille lähes ovelta." if fi else "Ski tracks and bike routes almost from the door."),
         ("sauna", "Oma sauna ja takka" if fi else "Private sauna & fireplace",
          "Puulämmitteinen takka, sauna ja lattialämmitys." if fi else "Wood-burning fireplace, sauna and underfloor heating."),
@@ -719,9 +719,9 @@ def page_book(lang, p):
 
 META = {
     "home": {"fi": ("Ylläs Kajo – mökki Ylläsjärvellä, 1 km gondolille",
-                    "Kodikas paritalohuoneisto kuudelle Ylläsjärvellä: oma sauna, takka, ladut ja polut ovelta, 1 km gondolille. Arvio 5,0 Airbnb:ssä."),
+                    "Kodikas paritalohuoneisto kuudelle Ylläsjärvellä: oma sauna, takka, ladut ja polut lähellä, 1 km gondolille. Arvio 5,0 Airbnb:ssä."),
              "en": ("Ylläs Kajo – cabin in Ylläs, Lapland, 1 km from the gondola",
-                    "A cosy cabin for six in Ylläsjärvi, Finnish Lapland: private sauna, fireplace, trails from the door, 1 km to the gondola. Rated 5.0 on Airbnb.")},
+                    "A cosy cabin for six in Ylläsjärvi, Finnish Lapland: private sauna, fireplace, trails nearby, 1 km to the gondola. Rated 5.0 on Airbnb.")},
     "cabin": {"fi": ("Mökki ja varustelu | Ylläs Kajo", "Tilat, varustelu ja kuvat: makuuhuone ja parvi kuudelle, sauna, takka, etätyöpisteet ja lukittava varasto."),
               "en": ("The cabin | Ylläs Kajo", "Spaces, amenities and photos: bedroom and loft for six, sauna, fireplace, remote-work desks and lockable storage.")},
     "summer": {"fi": ("Kesä ja ruska Ylläksellä | Ylläs Kajo", "Kesäloma Ylläksellä: bikepark, vaellus, yötön yö ja ruska. Mökki 1 km gondolilta."),
