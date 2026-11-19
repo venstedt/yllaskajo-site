@@ -562,6 +562,103 @@ def page_winter(lang, p):
 </main>'''
 
 
+def availability_block(lang, p):
+    """Saatavuuskalenteri. Varatut yöt tulevat tiedostosta assets/availability.json,
+    jonka GitHub Actions päivittää tunneittain (tools/fetch_availability.py)."""
+    fi = lang == "fi"
+    prev_l, next_l = ("Edellinen kuukausi", "Seuraava kuukausi") if fi else ("Previous month", "Next month")
+    return f'''<section aria-labelledby="avail-title">
+    <p class="eyebrow">{"Saatavuus" if fi else "Availability"}</p>
+    <h2 class="title" id="avail-title">{"Vapaat päivät" if fi else "Available dates"}</h2>
+    <div class="avail" id="avail" data-src="{p}assets/availability.json" data-lang="{lang}"
+         data-booked="{"varattu" if fi else "booked"}" data-free="{"vapaa" if fi else "available"}"
+         data-arrive="{"vapaa lähtöpäiväksi" if fi else "available for check-out"}"
+         data-depart="{"vapaa saapumispäiväksi" if fi else "available for check-in"}"
+         data-past="{"mennyt" if fi else "past"}"
+         data-error="{"Saatavuutta ei juuri nyt saatu ladattua. Näet vapaat päivät Airbnb:stä tai Bookingista." if fi else "Availability couldn't be loaded right now. Please check Airbnb or Booking.com."}">
+        <div class="avail-head">
+            <button type="button" class="avail-nav" data-step="-1" aria-label="{prev_l}" title="{prev_l}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+            <h3 class="avail-month" aria-live="polite"></h3>
+            <button type="button" class="avail-nav" data-step="1" aria-label="{next_l}" title="{next_l}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+        </div>
+        <div class="avail-grid avail-wd" aria-hidden="true"></div>
+        <div class="avail-grid avail-days" role="list"></div>
+        <p class="avail-msg" role="status" hidden></p>
+        <ul class="avail-legend">
+            <li><span class="sw sw-free"></span>{"Vapaa" if fi else "Available"}</li>
+            <li><span class="sw sw-booked"></span>{"Varattu" if fi else "Booked"}</li>
+            <li><span class="sw sw-change"></span>{"Vaihtopäivä: lähtö klo 11, saapuminen klo 17" if fi else "Changeover: check-out 11 am, check-in 5 pm"}</li>
+        </ul>
+    </div>
+</section>
+<script>
+(() => {{
+    const root = document.getElementById('avail');
+    if (!root) return;
+    const d = root.dataset;
+    const lang = d.lang === 'fi' ? 'fi-FI' : 'en-GB';
+    const iso = x => `${{x.getFullYear()}}-${{String(x.getMonth() + 1).padStart(2, '0')}}-${{String(x.getDate()).padStart(2, '0')}}`;
+    const now = new Date();
+    const today = iso(now);
+    const min = new Date(now.getFullYear(), now.getMonth(), 1);
+    const max = new Date(now.getFullYear(), now.getMonth() + 12, 1);
+    let view = new Date(min);
+    let nights = null;  // varatut yöt: päivämäärä = saapumisyö
+    const title = root.querySelector('.avail-month');
+    const days = root.querySelector('.avail-days');
+    const msg = root.querySelector('.avail-msg');
+    const [prev, next] = root.querySelectorAll('.avail-nav');
+    // Viikonpäivät maanantaista alkaen
+    const wd = new Intl.DateTimeFormat(lang, {{ weekday: 'short' }});
+    root.querySelector('.avail-wd').innerHTML = [...Array(7)].map((_, i) =>
+        `<span>${{wd.format(new Date(2024, 0, 1 + i)).replace('.', '')}}</span>`).join('');
+    const monthFmt = new Intl.DateTimeFormat(lang, {{ month: 'long', year: 'numeric' }});
+    const dayFmt = new Intl.DateTimeFormat(lang, {{ day: 'numeric', month: 'long' }});
+    const draw = () => {{
+        const t = monthFmt.format(view);
+        title.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+        prev.disabled = view <= min;
+        next.disabled = view >= max;
+        const y = view.getFullYear(), m = view.getMonth();
+        const lead = (new Date(y, m, 1).getDay() + 6) % 7;
+        const count = new Date(y, m + 1, 0).getDate();
+        let html = '<span class="avail-pad" aria-hidden="true"></span>'.repeat(lead);
+        for (let i = 1; i <= count; i++) {{
+            const day = new Date(y, m, i);
+            const key = iso(day);
+            let cls = 'free', label = d.free;
+            if (key < today) {{ cls = 'past'; label = d.past; }}
+            else if (nights) {{
+                const inN = nights.has(key);
+                const outN = nights.has(iso(new Date(y, m, i - 1)));
+                if (inN && outN) {{ cls = 'booked'; label = d.booked; }}
+                else if (inN) {{ cls = 'arrive'; label = d.arrive; }}
+                else if (outN) {{ cls = 'depart'; label = d.depart; }}
+            }} else cls += ' unknown';
+            html += `<span role="listitem" class="avail-day ${{cls}}${{key === today ? ' today' : ''}}" aria-label="${{dayFmt.format(day)}}: ${{label}}">${{i}}</span>`;
+        }}
+        days.innerHTML = html;
+    }};
+    root.querySelectorAll('.avail-nav').forEach(b => b.addEventListener('click', () => {{
+        view = new Date(view.getFullYear(), view.getMonth() + Number(b.dataset.step), 1);
+        draw();
+    }}));
+    draw();
+    fetch(d.src + '?v=' + Math.floor(Date.now() / 6e5), {{ cache: 'no-cache' }})
+        .then(r => {{ if (!r.ok) throw new Error(r.status); return r.json(); }})
+        .then(data => {{
+            nights = new Set();
+            (data.booked || []).forEach(([a, b]) => {{
+                const [ay, am, ad] = a.split('-').map(Number);
+                for (let x = new Date(ay, am - 1, ad); iso(x) < b; x.setDate(x.getDate() + 1)) nights.add(iso(x));
+            }});
+            draw();
+        }})
+        .catch(() => {{ msg.textContent = d.error; msg.hidden = false; root.classList.add('failed'); }});
+}})();
+</script>'''
+
+
 def page_book(lang, p):
     t = T[lang]
     fi = lang == "fi"
@@ -597,9 +694,10 @@ def page_book(lang, p):
                  "Choose the booking site that suits you, or ask us directly.",
                  "tunturi_2", p, pill="Ylläs Kajo", short=True)}
 <main id="sisalto">
-<section aria-labelledby="channels-title">
+{availability_block(lang, p)}
+<section aria-labelledby="channels-title" style="padding-top:0">
     <p class="eyebrow">{"Varauskanavat" if fi else "Where to book"}</p>
-    <h2 class="title" id="channels-title">{"Vapaat päivät ja hinnat" if fi else "Availability and prices"}</h2>
+    <h2 class="title" id="channels-title">{"Hinnat ja varaaminen" if fi else "Prices and booking"}</h2>
     <div class="channels">
         <a class="channel" href="{AIRBNB[lang]}" target="_blank" rel="noopener"><strong>Airbnb</strong><span>★ 5,0</span><span class="go">{"Varaa Airbnb:ssä" if fi else "Book on Airbnb"} →</span></a>
         <a class="channel" href="{BOOKING[lang]}" target="_blank" rel="noopener"><strong>Booking.com</strong><span>9,2</span><span class="go">{"Varaa Bookingissa" if fi else "Book on Booking.com"} →</span></a>

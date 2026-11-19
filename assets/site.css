@@ -558,6 +558,87 @@ section {
 .times-label { display: block; font-size: .67rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 .times-value { display: block; font-family: Georgia, serif; font-size: 1.8rem; line-height: 1.15; }
 
+/* Saatavuuskalenteri */
+.avail {
+    --booked: #c9b29a;
+    max-width: 520px;
+    padding: clamp(16px, 4vw, 24px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--light);
+}
+.avail-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.avail-month { margin: 0; font-size: 1.5rem; text-align: center; }
+.avail-nav {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--light);
+    color: var(--forest);
+    cursor: pointer;
+}
+.avail-nav:hover:not(:disabled) { border-color: var(--wood); }
+.avail-nav:disabled { opacity: .35; cursor: default; }
+.avail-nav svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.avail-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+}
+.avail-wd span {
+    padding-bottom: 6px;
+    color: var(--muted);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-align: center;
+    text-transform: uppercase;
+}
+.avail-day {
+    display: grid;
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--sand);
+    font-size: .95rem;
+    font-variant-numeric: tabular-nums;
+}
+.avail-day.free { background: #e3ebe4; color: var(--forest); font-weight: 600; }
+.avail-day.booked { background: var(--booked); color: #5b4733; text-decoration: line-through; }
+.avail-day.arrive { background: linear-gradient(135deg, #e3ebe4 50%, var(--booked) 50%); color: var(--forest); font-weight: 600; }
+.avail-day.depart { background: linear-gradient(135deg, var(--booked) 50%, #e3ebe4 50%); color: var(--forest); font-weight: 600; }
+.avail-day.past { background: transparent; color: #b3aaa0; }
+.avail-day.unknown { background: var(--sand); color: var(--muted); font-weight: 400; }
+.avail-day.today { box-shadow: inset 0 0 0 2px var(--forest); }
+.avail-msg { margin: 14px 0 0; color: var(--muted); font-size: .9rem; }
+.avail-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin: 16px 0 0;
+    padding: 0;
+    color: var(--muted);
+    font-size: .82rem;
+    list-style: none;
+}
+.avail-legend li { display: flex; align-items: center; gap: 6px; }
+.avail.failed .avail-legend { display: none; }
+.sw { width: 14px; height: 14px; border-radius: 4px; }
+.sw-free { background: #e3ebe4; }
+.sw-booked { background: var(--booked); }
+.sw-change { background: linear-gradient(135deg, var(--booked) 50%, #e3ebe4 50%); }
+
 .faq details {
     border-bottom: 1px solid #eee7df;
 }
