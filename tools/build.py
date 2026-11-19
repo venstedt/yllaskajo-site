@@ -138,7 +138,7 @@ T = {
         "read_booking": "Kaikki arviot Bookingissa",
         "translated": "",
         "cta_title": "Varaa lomasi Ylläs Kajoon",
-        "cta_text": "Näet vapaat päivät ja hinnat Airbnb:ssä ja Booking.comissa. Kysy rohkeasti myös suoraan meiltä – vastaamme yleensä tunnin sisällä.",
+        "book_now": "Varaa nyt",
         "ask": "Kysy meiltä",
         "mail_subject": "Varauskysely Ylläs Kajo",
         "show_email": "Näytä sähköposti",
@@ -164,7 +164,7 @@ T = {
         "read_booking": "All reviews on Booking.com",
         "translated": "Translated",
         "cta_title": "Book your stay at Ylläs Kajo",
-        "cta_text": "See available dates and prices on Airbnb and Booking.com. You're also welcome to ask us directly – we usually reply within an hour.",
+        "book_now": "Book now",
         "ask": "Ask us",
         "mail_subject": "Booking enquiry Ylläs Kajo",
         "show_email": "Show email address",
@@ -219,12 +219,7 @@ def cta_block(lang):
     t = T[lang]
     return f'''<aside class="cta" aria-labelledby="cta-title">
     <h2 id="cta-title">{t["cta_title"]}</h2>
-    <p>{t["cta_text"]}</p>
-    <div class="hero-actions">
-        <a class="btn" href="{AIRBNB[lang]}" target="_blank" rel="noopener">Airbnb</a>
-        <a class="btn" href="{BOOKING[lang]}" target="_blank" rel="noopener">Booking.com</a>
-        {email_button(lang, label=t["ask"])}
-    </div>
+    <a class="btn" href="{href(lang, "book", lang)}">{icon("book")}{t["book_now"]} →</a>
 </aside>'''
 
 
@@ -267,8 +262,8 @@ def page_home(lang, p):
     features = [
         ("gondola", "1 km gondolille" if fi else "1 km to the gondola",
          "Ylläksen gondolihissin ala-asema noin kilometrin päässä." if fi else "The Ylläs gondola base station is about a kilometre away."),
-        ("ski", "Ladut ja polut ovelta" if fi else "Trails from the door",
-         "Hiihtoladulle ja pyöräreitille alle puoli kilometriä." if fi else "Ski tracks and bike routes less than 500 m away."),
+        ("ski", "Ladut ja polut lähellä" if fi else "Trails nearby",
+         "Hiihtoladuille ja pyöräreiteille lähes ovelta." if fi else "Ski tracks and bike routes almost from the door."),
         ("sauna", "Oma sauna ja takka" if fi else "Private sauna & fireplace",
          "Puulämmitteinen takka, sauna ja lattialämmitys." if fi else "Wood-burning fireplace, sauna and underfloor heating."),
         ("people", "Tilaa kuudelle" if fi else "Sleeps six",
@@ -562,6 +557,106 @@ def page_winter(lang, p):
 </main>'''
 
 
+def availability_block(lang, p, aside=""):
+    """Saatavuuskalenteri. Varatut yöt tulevat tiedostosta assets/availability.json,
+    jonka GitHub Actions päivittää tunneittain (tools/fetch_availability.py)."""
+    fi = lang == "fi"
+    prev_l, next_l = ("Edellinen kuukausi", "Seuraava kuukausi") if fi else ("Previous month", "Next month")
+    return f'''<section aria-labelledby="avail-title">
+    <p class="eyebrow">{"Saatavuus" if fi else "Availability"}</p>
+    <h2 class="title" id="avail-title">{"Vapaat päivät ja varaaminen" if fi else "Availability and booking"}</h2>
+    <div class="avail-layout">
+    <div class="avail" id="avail" data-src="{p}assets/availability.json" data-lang="{lang}"
+         data-booked="{"varattu" if fi else "booked"}" data-free="{"vapaa" if fi else "available"}"
+         data-arrive="{"vapaa lähtöpäiväksi" if fi else "available for check-out"}"
+         data-depart="{"vapaa saapumispäiväksi" if fi else "available for check-in"}"
+         data-past="{"mennyt" if fi else "past"}"
+         data-error="{"Saatavuutta ei juuri nyt saatu ladattua. Näet vapaat päivät Airbnb:stä tai Bookingista." if fi else "Availability couldn't be loaded right now. Please check Airbnb or Booking.com."}">
+        <div class="avail-head">
+            <button type="button" class="avail-nav" data-step="-1" aria-label="{prev_l}" title="{prev_l}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+            <h3 class="avail-month" aria-live="polite"></h3>
+            <button type="button" class="avail-nav" data-step="1" aria-label="{next_l}" title="{next_l}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+        </div>
+        <div class="avail-grid avail-wd" aria-hidden="true"></div>
+        <div class="avail-grid avail-days" role="list"></div>
+        <p class="avail-msg" role="status" hidden></p>
+        <ul class="avail-legend">
+            <li><span class="sw sw-free"></span>{"Vapaa" if fi else "Available"}</li>
+            <li><span class="sw sw-booked"></span>{"Varattu" if fi else "Booked"}</li>
+            <li><span class="sw sw-change"></span>{"Vaihtopäivä: lähtö klo 11, saapuminen klo 17" if fi else "Changeover: check-out 11 am, check-in 5 pm"}</li>
+        </ul>
+    </div>
+    {aside}
+    </div>
+</section>
+<script>
+(() => {{
+    const root = document.getElementById('avail');
+    if (!root) return;
+    const d = root.dataset;
+    const lang = d.lang === 'fi' ? 'fi-FI' : 'en-GB';
+    const iso = x => `${{x.getFullYear()}}-${{String(x.getMonth() + 1).padStart(2, '0')}}-${{String(x.getDate()).padStart(2, '0')}}`;
+    const now = new Date();
+    const today = iso(now);
+    const min = new Date(now.getFullYear(), now.getMonth(), 1);
+    const max = new Date(now.getFullYear(), now.getMonth() + 12, 1);
+    let view = new Date(min);
+    let nights = null;  // varatut yöt: päivämäärä = saapumisyö
+    const title = root.querySelector('.avail-month');
+    const days = root.querySelector('.avail-days');
+    const msg = root.querySelector('.avail-msg');
+    const [prev, next] = root.querySelectorAll('.avail-nav');
+    // Viikonpäivät maanantaista alkaen
+    const wd = new Intl.DateTimeFormat(lang, {{ weekday: 'short' }});
+    root.querySelector('.avail-wd').innerHTML = [...Array(7)].map((_, i) =>
+        `<span>${{wd.format(new Date(2024, 0, 1 + i)).replace('.', '')}}</span>`).join('');
+    const monthFmt = new Intl.DateTimeFormat(lang, {{ month: 'long', year: 'numeric' }});
+    const dayFmt = new Intl.DateTimeFormat(lang, {{ day: 'numeric', month: 'long' }});
+    const draw = () => {{
+        const t = monthFmt.format(view);
+        title.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+        prev.disabled = view <= min;
+        next.disabled = view >= max;
+        const y = view.getFullYear(), m = view.getMonth();
+        const lead = (new Date(y, m, 1).getDay() + 6) % 7;
+        const count = new Date(y, m + 1, 0).getDate();
+        let html = '<span class="avail-pad" aria-hidden="true"></span>'.repeat(lead);
+        for (let i = 1; i <= count; i++) {{
+            const day = new Date(y, m, i);
+            const key = iso(day);
+            let cls = 'free', label = d.free;
+            if (key < today) {{ cls = 'past'; label = d.past; }}
+            else if (nights) {{
+                const inN = nights.has(key);
+                const outN = nights.has(iso(new Date(y, m, i - 1)));
+                if (inN && outN) {{ cls = 'booked'; label = d.booked; }}
+                else if (inN) {{ cls = 'arrive'; label = d.arrive; }}
+                else if (outN) {{ cls = 'depart'; label = d.depart; }}
+            }} else cls += ' unknown';
+            html += `<span role="listitem" class="avail-day ${{cls}}${{key === today ? ' today' : ''}}" aria-label="${{dayFmt.format(day)}}: ${{label}}">${{i}}</span>`;
+        }}
+        days.innerHTML = html;
+    }};
+    root.querySelectorAll('.avail-nav').forEach(b => b.addEventListener('click', () => {{
+        view = new Date(view.getFullYear(), view.getMonth() + Number(b.dataset.step), 1);
+        draw();
+    }}));
+    draw();
+    fetch(d.src + '?v=' + Math.floor(Date.now() / 6e5), {{ cache: 'no-cache' }})
+        .then(r => {{ if (!r.ok) throw new Error(r.status); return r.json(); }})
+        .then(data => {{
+            nights = new Set();
+            (data.booked || []).forEach(([a, b]) => {{
+                const [ay, am, ad] = a.split('-').map(Number);
+                for (let x = new Date(ay, am - 1, ad); iso(x) < b; x.setDate(x.getDate() + 1)) nights.add(iso(x));
+            }});
+            draw();
+        }})
+        .catch(() => {{ msg.textContent = d.error; msg.hidden = false; root.classList.add('failed'); }});
+}})();
+</script>'''
+
+
 def page_book(lang, p):
     t = T[lang]
     fi = lang == "fi"
@@ -597,15 +692,14 @@ def page_book(lang, p):
                  "Choose the booking site that suits you, or ask us directly.",
                  "tunturi_2", p, pill="Ylläs Kajo", short=True)}
 <main id="sisalto">
-<section aria-labelledby="channels-title">
-    <p class="eyebrow">{"Varauskanavat" if fi else "Where to book"}</p>
-    <h2 class="title" id="channels-title">{"Vapaat päivät ja hinnat" if fi else "Availability and prices"}</h2>
-    <div class="channels">
-        <a class="channel" href="{AIRBNB[lang]}" target="_blank" rel="noopener"><strong>Airbnb</strong><span>★ 5,0</span><span class="go">{"Varaa Airbnb:ssä" if fi else "Book on Airbnb"} →</span></a>
-        <a class="channel" href="{BOOKING[lang]}" target="_blank" rel="noopener"><strong>Booking.com</strong><span>9,2</span><span class="go">{"Varaa Bookingissa" if fi else "Book on Booking.com"} →</span></a>
-        <div class="channel"><strong>{"Kysy meiltä" if fi else "Ask us"}</strong><span>{"Vastaamme yleensä tunnin sisällä." if fi else "We usually reply within an hour."}</span><span class="go">{email_button(lang, cls="btn btn-line")}</span></div>
-    </div>
-</section>
+{availability_block(lang, p, aside=f'''<div class="avail-aside">
+        <p class="avail-lead">{"Löytyikö sopivat päivät? Varaa haluamastasi palvelusta tai kysy suoraan meiltä." if fi else "Found dates that suit you? Book on your preferred site or ask us directly."}</p>
+        <div class="channels channels-stack">
+            <a class="channel" href="{AIRBNB[lang]}" target="_blank" rel="noopener"><strong>Airbnb</strong><span>★ 5,0</span><span class="go">{"Varaa Airbnb:ssä" if fi else "Book on Airbnb"} →</span></a>
+            <a class="channel" href="{BOOKING[lang]}" target="_blank" rel="noopener"><strong>Booking.com</strong><span>9,2</span><span class="go">{"Varaa Bookingissa" if fi else "Book on Booking.com"} →</span></a>
+            <div class="channel"><strong>{"Kysy meiltä" if fi else "Ask us"}</strong><span>{"Vastaamme yleensä tunnin sisällä." if fi else "We usually reply within an hour."}</span><span class="go">{email_button(lang, cls="btn btn-line")}</span></div>
+        </div>
+    </div>''')}
 <section aria-labelledby="info-title" style="padding-top:0">
     <p class="eyebrow">{"Hyvä tietää" if fi else "Good to know"}</p>
     <h2 class="title" id="info-title">{"Saapuminen ja säännöt" if fi else "Arrival and house rules"}</h2>
@@ -620,15 +714,14 @@ def page_book(lang, p):
     <h2 class="title" id="faq-title">{"Kysymyksiä ja vastauksia" if fi else "Questions and answers"}</h2>
     <div class="faq faq-wrap">{faq_html}</div>
 </section>
-{cta_block(lang)}
 </main>'''
 
 
 META = {
     "home": {"fi": ("Ylläs Kajo – mökki Ylläsjärvellä, 1 km gondolille",
-                    "Kodikas paritalohuoneisto kuudelle Ylläsjärvellä: oma sauna, takka, ladut ja polut ovelta, 1 km gondolille. Arvio 5,0 Airbnb:ssä."),
+                    "Kodikas paritalohuoneisto kuudelle Ylläsjärvellä: oma sauna, takka, ladut ja polut lähellä, 1 km gondolille. Arvio 5,0 Airbnb:ssä."),
              "en": ("Ylläs Kajo – cabin in Ylläs, Lapland, 1 km from the gondola",
-                    "A cosy cabin for six in Ylläsjärvi, Finnish Lapland: private sauna, fireplace, trails from the door, 1 km to the gondola. Rated 5.0 on Airbnb.")},
+                    "A cosy cabin for six in Ylläsjärvi, Finnish Lapland: private sauna, fireplace, trails nearby, 1 km to the gondola. Rated 5.0 on Airbnb.")},
     "cabin": {"fi": ("Mökki ja varustelu | Ylläs Kajo", "Tilat, varustelu ja kuvat: makuuhuone ja parvi kuudelle, sauna, takka, etätyöpisteet ja lukittava varasto."),
               "en": ("The cabin | Ylläs Kajo", "Spaces, amenities and photos: bedroom and loft for six, sauna, fireplace, remote-work desks and lockable storage.")},
     "summer": {"fi": ("Kesä ja ruska Ylläksellä | Ylläs Kajo", "Kesäloma Ylläksellä: bikepark, vaellus, yötön yö ja ruska. Mökki 1 km gondolilta."),

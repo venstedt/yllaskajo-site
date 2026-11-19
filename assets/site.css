@@ -513,16 +513,19 @@ section {
 
 /* Varaus-CTA */
 .cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 24px;
     width: min(calc(100% - 32px), 1200px);
     margin: 0 auto clamp(48px, 8vw, 88px);
-    padding: clamp(32px, 6vw, 64px);
+    padding: clamp(22px, 4vw, 32px) clamp(24px, 5vw, 48px);
     border-radius: 28px;
     background: var(--forest);
     color: var(--light);
 }
-.cta h2 { margin: 0 0 10px; font-size: clamp(1.8rem, 5vw, 2.6rem); }
-.cta p { max-width: 620px; margin: 0 0 24px; opacity: .9; }
-.cta .hero-actions .btn-line { border-color: transparent; }
+.cta h2 { margin: 0; font-size: clamp(1.4rem, 4vw, 1.9rem); }
 
 /* Varaa-sivu */
 .channels {
@@ -557,6 +560,98 @@ section {
 .times > div + div { padding-left: 14px; border-left: 1px solid var(--line); }
 .times-label { display: block; font-size: .67rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 .times-value { display: block; font-family: Georgia, serif; font-size: 1.8rem; line-height: 1.15; }
+
+/* Saatavuuskalenteri */
+.avail-layout {
+    display: grid;
+    gap: 20px;
+    align-items: start;
+}
+@media (min-width: 900px) {
+    .avail-layout { grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: 32px; }
+}
+.avail-lead { margin: 0 0 14px; color: var(--muted); }
+.channels-stack { grid-template-columns: 1fr; }
+.channels-stack .channel { padding: 18px 22px; }
+.avail {
+    --booked: #c9b29a;
+    max-width: 520px;
+    padding: clamp(16px, 4vw, 24px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--light);
+}
+.avail-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.avail-month { margin: 0; font-size: 1.5rem; text-align: center; }
+.avail-nav {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--light);
+    color: var(--forest);
+    cursor: pointer;
+}
+.avail-nav:hover:not(:disabled) { border-color: var(--wood); }
+.avail-nav:disabled { opacity: .35; cursor: default; }
+.avail-nav svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.avail-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+}
+.avail-wd span {
+    padding-bottom: 6px;
+    color: var(--muted);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-align: center;
+    text-transform: uppercase;
+}
+.avail-day {
+    display: grid;
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--sand);
+    font-size: .95rem;
+    font-variant-numeric: tabular-nums;
+}
+.avail-day.free { background: #e3ebe4; color: var(--forest); font-weight: 600; }
+.avail-day.booked { background: var(--booked); color: #5b4733; text-decoration: line-through; }
+.avail-day.arrive { background: linear-gradient(135deg, #e3ebe4 50%, var(--booked) 50%); color: var(--forest); font-weight: 600; }
+.avail-day.depart { background: linear-gradient(135deg, var(--booked) 50%, #e3ebe4 50%); color: var(--forest); font-weight: 600; }
+.avail-day.past { background: transparent; color: #b3aaa0; }
+.avail-day.unknown { background: var(--sand); color: var(--muted); font-weight: 400; }
+.avail-day.today { box-shadow: inset 0 0 0 2px var(--forest); }
+.avail-msg { margin: 14px 0 0; color: var(--muted); font-size: .9rem; }
+.avail-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin: 16px 0 0;
+    padding: 0;
+    color: var(--muted);
+    font-size: .82rem;
+    list-style: none;
+}
+.avail-legend li { display: flex; align-items: center; gap: 6px; }
+.avail.failed .avail-legend { display: none; }
+.sw { width: 14px; height: 14px; border-radius: 4px; }
+.sw-free { background: #e3ebe4; }
+.sw-booked { background: var(--booked); }
+.sw-change { background: linear-gradient(135deg, var(--booked) 50%, #e3ebe4 50%); }
 
 .faq details {
     border-bottom: 1px solid #eee7df;
@@ -687,5 +782,4 @@ section {
     cursor: pointer;
 }
 .site-footer .email-shown { color: #d8d3cc; }
-.cta .hero-actions { align-items: center; }
 .channel .go .btn { margin-top: 2px; }
