@@ -562,14 +562,15 @@ def page_winter(lang, p):
 </main>'''
 
 
-def availability_block(lang, p):
+def availability_block(lang, p, aside=""):
     """Saatavuuskalenteri. Varatut yöt tulevat tiedostosta assets/availability.json,
     jonka GitHub Actions päivittää tunneittain (tools/fetch_availability.py)."""
     fi = lang == "fi"
     prev_l, next_l = ("Edellinen kuukausi", "Seuraava kuukausi") if fi else ("Previous month", "Next month")
     return f'''<section aria-labelledby="avail-title">
     <p class="eyebrow">{"Saatavuus" if fi else "Availability"}</p>
-    <h2 class="title" id="avail-title">{"Vapaat päivät" if fi else "Available dates"}</h2>
+    <h2 class="title" id="avail-title">{"Vapaat päivät ja varaaminen" if fi else "Availability and booking"}</h2>
+    <div class="avail-layout">
     <div class="avail" id="avail" data-src="{p}assets/availability.json" data-lang="{lang}"
          data-booked="{"varattu" if fi else "booked"}" data-free="{"vapaa" if fi else "available"}"
          data-arrive="{"vapaa lähtöpäiväksi" if fi else "available for check-out"}"
@@ -589,6 +590,8 @@ def availability_block(lang, p):
             <li><span class="sw sw-booked"></span>{"Varattu" if fi else "Booked"}</li>
             <li><span class="sw sw-change"></span>{"Vaihtopäivä: lähtö klo 11, saapuminen klo 17" if fi else "Changeover: check-out 11 am, check-in 5 pm"}</li>
         </ul>
+    </div>
+    {aside}
     </div>
 </section>
 <script>
@@ -694,16 +697,14 @@ def page_book(lang, p):
                  "Choose the booking site that suits you, or ask us directly.",
                  "tunturi_2", p, pill="Ylläs Kajo", short=True)}
 <main id="sisalto">
-{availability_block(lang, p)}
-<section aria-labelledby="channels-title" style="padding-top:0">
-    <p class="eyebrow">{"Varauskanavat" if fi else "Where to book"}</p>
-    <h2 class="title" id="channels-title">{"Hinnat ja varaaminen" if fi else "Prices and booking"}</h2>
-    <div class="channels">
-        <a class="channel" href="{AIRBNB[lang]}" target="_blank" rel="noopener"><strong>Airbnb</strong><span>★ 5,0</span><span class="go">{"Varaa Airbnb:ssä" if fi else "Book on Airbnb"} →</span></a>
-        <a class="channel" href="{BOOKING[lang]}" target="_blank" rel="noopener"><strong>Booking.com</strong><span>9,2</span><span class="go">{"Varaa Bookingissa" if fi else "Book on Booking.com"} →</span></a>
-        <div class="channel"><strong>{"Kysy meiltä" if fi else "Ask us"}</strong><span>{"Vastaamme yleensä tunnin sisällä." if fi else "We usually reply within an hour."}</span><span class="go">{email_button(lang, cls="btn btn-line")}</span></div>
-    </div>
-</section>
+{availability_block(lang, p, aside=f'''<div class="avail-aside">
+        <p class="avail-lead">{"Löytyikö sopivat päivät? Varaa haluamastasi palvelusta tai kysy suoraan meiltä." if fi else "Found dates that suit you? Book on your preferred site or ask us directly."}</p>
+        <div class="channels channels-stack">
+            <a class="channel" href="{AIRBNB[lang]}" target="_blank" rel="noopener"><strong>Airbnb</strong><span>★ 5,0</span><span class="go">{"Varaa Airbnb:ssä" if fi else "Book on Airbnb"} →</span></a>
+            <a class="channel" href="{BOOKING[lang]}" target="_blank" rel="noopener"><strong>Booking.com</strong><span>9,2</span><span class="go">{"Varaa Bookingissa" if fi else "Book on Booking.com"} →</span></a>
+            <div class="channel"><strong>{"Kysy meiltä" if fi else "Ask us"}</strong><span>{"Vastaamme yleensä tunnin sisällä." if fi else "We usually reply within an hour."}</span><span class="go">{email_button(lang, cls="btn btn-line")}</span></div>
+        </div>
+    </div>''')}
 <section aria-labelledby="info-title" style="padding-top:0">
     <p class="eyebrow">{"Hyvä tietää" if fi else "Good to know"}</p>
     <h2 class="title" id="info-title">{"Saapuminen ja säännöt" if fi else "Arrival and house rules"}</h2>

@@ -45,7 +45,8 @@
 <main id="sisalto">
 <section aria-labelledby="avail-title">
     <p class="eyebrow">Availability</p>
-    <h2 class="title" id="avail-title">Available dates</h2>
+    <h2 class="title" id="avail-title">Availability and booking</h2>
+    <div class="avail-layout">
     <div class="avail" id="avail" data-src="../assets/availability.json" data-lang="en"
          data-booked="booked" data-free="available"
          data-arrive="available for check-out"
@@ -65,6 +66,15 @@
             <li><span class="sw sw-booked"></span>Booked</li>
             <li><span class="sw sw-change"></span>Changeover: check-out 11 am, check-in 5 pm</li>
         </ul>
+    </div>
+    <div class="avail-aside">
+        <p class="avail-lead">Found dates that suit you? Book on your preferred site or ask us directly.</p>
+        <div class="channels channels-stack">
+            <a class="channel" href="https://www.airbnb.com/rooms/1505850569308831000" target="_blank" rel="noopener"><strong>Airbnb</strong><span>★ 5,0</span><span class="go">Book on Airbnb →</span></a>
+            <a class="channel" href="https://www.booking.com/hotel/fi/yllas-kajo.en-gb.html" target="_blank" rel="noopener"><strong>Booking.com</strong><span>9,2</span><span class="go">Book on Booking.com →</span></a>
+            <div class="channel"><strong>Ask us</strong><span>We usually reply within an hour.</span><span class="go"><button type="button" class="btn btn-line email-btn" data-subject="Booking enquiry Ylläs Kajo" data-copied="Address copied to clipboard"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span>Show email address</span></button></span></div>
+        </div>
+    </div>
     </div>
 </section>
 <script>
@@ -133,15 +143,6 @@
         .catch(() => { msg.textContent = d.error; msg.hidden = false; root.classList.add('failed'); });
 })();
 </script>
-<section aria-labelledby="channels-title" style="padding-top:0">
-    <p class="eyebrow">Where to book</p>
-    <h2 class="title" id="channels-title">Prices and booking</h2>
-    <div class="channels">
-        <a class="channel" href="https://www.airbnb.com/rooms/1505850569308831000" target="_blank" rel="noopener"><strong>Airbnb</strong><span>★ 5,0</span><span class="go">Book on Airbnb →</span></a>
-        <a class="channel" href="https://www.booking.com/hotel/fi/yllas-kajo.en-gb.html" target="_blank" rel="noopener"><strong>Booking.com</strong><span>9,2</span><span class="go">Book on Booking.com →</span></a>
-        <div class="channel"><strong>Ask us</strong><span>We usually reply within an hour.</span><span class="go"><button type="button" class="btn btn-line email-btn" data-subject="Booking enquiry Ylläs Kajo" data-copied="Address copied to clipboard"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span>Show email address</span></button></span></div>
-    </div>
-</section>
 <section aria-labelledby="info-title" style="padding-top:0">
     <p class="eyebrow">Good to know</p>
     <h2 class="title" id="info-title">Arrival and house rules</h2>
