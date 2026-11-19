@@ -263,7 +263,7 @@ def page_home(lang, p):
         ("gondola", "1 km gondolille" if fi else "1 km to the gondola",
          "Ylläksen gondolihissin ala-asema noin kilometrin päässä." if fi else "The Ylläs gondola base station is about a kilometre away."),
         ("ski", "Ladut ja polut ovelta" if fi else "Trails from the door",
-         "Hiihtoladulle ja pyöräreitille alle puoli kilometriä." if fi else "Ski tracks and bike routes less than 500 m away."),
+         "Hiihtoladuille ja pyöräreiteille lähes ovelta." if fi else "Ski tracks and bike routes almost from the door."),
         ("sauna", "Oma sauna ja takka" if fi else "Private sauna & fireplace",
          "Puulämmitteinen takka, sauna ja lattialämmitys." if fi else "Wood-burning fireplace, sauna and underfloor heating."),
         ("people", "Tilaa kuudelle" if fi else "Sleeps six",
