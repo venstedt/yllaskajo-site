@@ -25,7 +25,12 @@ jobs:
       - name: Hae varaukset
         env:
           ICAL_URLS: ${{ secrets.ICAL_URLS }}
-        run: python3 tools/fetch_availability.py
+        run: |
+          if [ -z "$ICAL_URLS" ]; then
+            echo "Salaisuutta ICAL_URLS ei ole vielä asetettu, ohitetaan."
+            exit 0
+          fi
+          python3 tools/fetch_availability.py
       - name: Tallenna muutokset
         run: |
           if [ -z "$(git status --porcelain -- assets/availability.json)" ]; then
