@@ -18,11 +18,51 @@ import sys
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from zoneinfo import ZoneInfo
+from datetime import tzinfo
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "availability.json"
-LOCAL = ZoneInfo("Europe/Helsinki")
+
+
+class _Helsinki(tzinfo):
+    """Suomen aika (EET/EEST) ilman tzdata-pakettia, jota Windowsissa ei ole valmiina."""
+
+    @staticmethod
+    def _last_sunday(year, month):
+        d = date(year, month, 31)
+        return d - timedelta(days=(d.weekday() + 1) % 7)
+
+    def _dst_utc(self, year):
+        a, b = self._last_sunday(year, 3), self._last_sunday(year, 10)
+        return (datetime(a.year, a.month, a.day, 1, tzinfo=timezone.utc),
+                datetime(b.year, b.month, b.day, 1, tzinfo=timezone.utc))
+
+    def utcoffset(self, dt):
+        start, end = self._dst_utc(dt.year)
+        naive_utc = dt.replace(tzinfo=None) - timedelta(hours=2)
+        return timedelta(hours=3 if start.replace(tzinfo=None) <= naive_utc < end.replace(tzinfo=None) else 2)
+
+    def dst(self, dt):
+        return self.utcoffset(dt) - timedelta(hours=2)
+
+    def tzname(self, dt):
+        return "EEST" if self.dst(dt) else "EET"
+
+    def fromutc(self, dt):
+        start, end = self._dst_utc(dt.year)
+        u = dt.replace(tzinfo=timezone.utc)
+        return (dt + timedelta(hours=3 if start <= u < end else 2)).replace(tzinfo=self)
+
+
+def _zone(name):
+    try:
+        from zoneinfo import ZoneInfo
+        return ZoneInfo(name)
+    except Exception:
+        return None
+
+
+LOCAL = _zone("Europe/Helsinki") or _Helsinki()
 MONTHS_AHEAD = 13  # sivulla voi selata 12 kk eteenpäin
 
 
@@ -49,10 +89,7 @@ def parse_value(params, value):
         dt = dt.replace(tzinfo=timezone.utc)
     else:
         tz = re.search(r"TZID=([^;:]+)", params)
-        try:
-            dt = dt.replace(tzinfo=ZoneInfo(tz[1].strip('"')) if tz else LOCAL)
-        except Exception:
-            dt = dt.replace(tzinfo=LOCAL)
+        dt = dt.replace(tzinfo=(_zone(tz[1].strip('"')) if tz else None) or LOCAL)
     return dt.astimezone(LOCAL).date(), True
 
 
