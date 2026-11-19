@@ -138,7 +138,7 @@ T = {
         "read_booking": "Kaikki arviot Bookingissa",
         "translated": "",
         "cta_title": "Varaa lomasi Ylläs Kajoon",
-        "cta_text": "Näet vapaat päivät ja hinnat Airbnb:ssä ja Booking.comissa. Kysy rohkeasti myös suoraan meiltä – vastaamme yleensä tunnin sisällä.",
+        "book_now": "Varaa nyt",
         "ask": "Kysy meiltä",
         "mail_subject": "Varauskysely Ylläs Kajo",
         "show_email": "Näytä sähköposti",
@@ -164,7 +164,7 @@ T = {
         "read_booking": "All reviews on Booking.com",
         "translated": "Translated",
         "cta_title": "Book your stay at Ylläs Kajo",
-        "cta_text": "See available dates and prices on Airbnb and Booking.com. You're also welcome to ask us directly – we usually reply within an hour.",
+        "book_now": "Book now",
         "ask": "Ask us",
         "mail_subject": "Booking enquiry Ylläs Kajo",
         "show_email": "Show email address",
@@ -219,12 +219,7 @@ def cta_block(lang):
     t = T[lang]
     return f'''<aside class="cta" aria-labelledby="cta-title">
     <h2 id="cta-title">{t["cta_title"]}</h2>
-    <p>{t["cta_text"]}</p>
-    <div class="hero-actions">
-        <a class="btn" href="{AIRBNB[lang]}" target="_blank" rel="noopener">Airbnb</a>
-        <a class="btn" href="{BOOKING[lang]}" target="_blank" rel="noopener">Booking.com</a>
-        {email_button(lang, label=t["ask"])}
-    </div>
+    <a class="btn" href="{href(lang, "book", lang)}">{icon("book")}{t["book_now"]} →</a>
 </aside>'''
 
 
@@ -719,7 +714,6 @@ def page_book(lang, p):
     <h2 class="title" id="faq-title">{"Kysymyksiä ja vastauksia" if fi else "Questions and answers"}</h2>
     <div class="faq faq-wrap">{faq_html}</div>
 </section>
-{cta_block(lang)}
 </main>'''
 
 
