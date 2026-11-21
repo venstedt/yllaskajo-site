@@ -404,6 +404,63 @@ section {
 }
 .gallery-more { margin-top: 18px; }
 
+/* Kuvien katselu sivun päällä */
+.lb-open, .lb-open body { overflow: hidden; }
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    padding: 64px 0;
+    background: rgba(14, 14, 14, .96);
+}
+.lightbox[hidden] { display: none; }
+.lb-stage { overflow: hidden; touch-action: pan-y; }
+.lb-track { display: flex; will-change: transform; }
+.lb-slide {
+    display: grid;
+    flex: 0 0 100%;
+    place-items: center;
+    padding: 0 12px;
+}
+.lb-slide img {
+    max-width: min(100%, 1600px);
+    max-height: calc(100vh - 170px);
+    max-height: calc(100dvh - 170px);
+    object-fit: contain;
+    border-radius: 6px;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+.lb-caption { margin: 0; color: #e8e2da; font-size: .9rem; text-align: center; white-space: pre; }
+.lb-btn {
+    position: absolute;
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, .25);
+    border-radius: 999px;
+    background: rgba(40, 40, 40, .8);
+    color: #fff;
+    cursor: pointer;
+}
+.lb-btn:hover { background: rgba(70, 70, 70, .9); }
+.lb-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lb-close { top: 12px; right: 12px; }
+.lb-prev, .lb-next { top: 50%; transform: translateY(-50%); }
+.lb-prev { left: 12px; }
+.lb-next { right: 12px; }
+@media (max-width: 699px) {
+    .lb-prev, .lb-next { top: auto; bottom: 16px; transform: none; }
+    .lb-prev { left: calc(50% - 60px); }
+    .lb-next { right: calc(50% - 60px); }
+}
+
 /* Palautteet */
 .reviews {
     display: grid;

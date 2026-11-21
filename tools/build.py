@@ -233,14 +233,30 @@ def trust_block(lang):
 </div>'''
 
 
+HERO_CSS = []  # hero() kerää sivukohtaiset taustakuvat, render() kirjoittaa ne <head>-osaan
+
+
+def hero_vars(image, prefix):
+    """Puhelimelle nykyinen kuva, isommille näytöille tarkempi <kuva>-hero.jpg, jos sellainen on."""
+    sm = f"{prefix}assets/img/{image}.jpg"
+    lg = f"{prefix}assets/img/{image}-hero.jpg" if (ROOT / "assets" / "img" / f"{image}-hero.jpg").exists() else sm
+    return sm, lg
+
+
 def hero(title, lead, image, prefix, pill=None, actions="", short=False, winter_image=None):
     cls = "hero short" if short else "hero"
+    sm, lg = hero_vars(image, prefix)
+    css = [f".hero{{background-image:url('{sm}')}}",
+           f"@media (min-width:700px){{.hero{{background-image:url('{lg}')}}}}"]
     data = ""
     if winter_image:
-        data = (f' data-summer="{prefix}assets/img/{image}.jpg" '
-                f'data-winter="{prefix}assets/img/{winter_image}.jpg"')
+        wsm, wlg = hero_vars(winter_image, prefix)
+        css += [f".hero.winter{{background-image:url('{wsm}')}}",
+                f"@media (min-width:700px){{.hero.winter{{background-image:url('{wlg}')}}}}"]
+        data = ' data-winter="1"'
+    HERO_CSS[:] = css
     p = f'<span class="pill">{pill}</span>' if pill else ""
-    return f'''<header class="{cls}" style="background-image:url('{prefix}assets/img/{image}.jpg')"{data}>
+    return f'''<header class="{cls}"{data}>
     <div class="hero-inner">
         {p}
         <h1>{title}</h1>
@@ -403,7 +419,7 @@ def page_cabin(lang, p):
             ("yllas-kajo-1", "Ylläs Kajo ja varasto kesällä" if fi else "Ylläs Kajo and storage in summer", "wide"),
             ("yllas-kajo-5", "Talo kesällä" if fi else "The house in summer", ""),
             ("yllas-kajo-2", "Lukittava varasto" if fi else "Lockable storage", ""),
-            ("kajo_valot", "Talvi-ilta" if fi else "Winter evening", ""),
+            ("kajo_valot", "Syysilta" if fi else "Autumn evening", ""),
             ("revot_3", "Revontulet mökin yllä" if fi else "Northern lights above the cabin", ""),
         ]),
     ]
@@ -791,14 +807,120 @@ SCRIPT = """<script>
     const onScroll = () => bar.classList.toggle('solid', !hero || window.scrollY > hero.offsetHeight - 80);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
+    // Kuvagalleria: kuva aukeaa sivun päälle. Selaus nuolilla, näppäimillä tai pyyhkäisemällä
+    // (edellinen ja seuraava kuva kulkevat vieressä sormen mukana). Sulku ruksista, Escillä tai taustasta.
+    const shots = [...document.querySelectorAll('.gallery a[href$=".jpg"]')];
+    if (shots.length) {
+        const fi = document.documentElement.lang === 'fi';
+        const lb = document.createElement('div');
+        lb.className = 'lightbox';
+        lb.hidden = true;
+        lb.setAttribute('role', 'dialog');
+        lb.setAttribute('aria-modal', 'true');
+        lb.setAttribute('aria-label', fi ? 'Kuvagalleria' : 'Photo gallery');
+        const svg = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+        lb.innerHTML = `<div class="lb-stage"><div class="lb-track">
+                <div class="lb-slide"><img alt="" draggable="false"></div>
+                <div class="lb-slide"><img alt="" draggable="false"></div>
+                <div class="lb-slide"><img alt="" draggable="false"></div>
+            </div></div>
+            <p class="lb-caption" aria-live="polite"></p>
+            <button type="button" class="lb-btn lb-close" aria-label="${fi ? 'Sulje' : 'Close'}">${svg('M6 6l12 12M18 6 6 18')}</button>
+            <button type="button" class="lb-btn lb-prev" aria-label="${fi ? 'Edellinen kuva' : 'Previous photo'}">${svg('m15 5-7 7 7 7')}</button>
+            <button type="button" class="lb-btn lb-next" aria-label="${fi ? 'Seuraava kuva' : 'Next photo'}">${svg('m9 5 7 7-7 7')}</button>`;
+        document.body.append(lb);
+        const stage = lb.querySelector('.lb-stage'), track = lb.querySelector('.lb-track');
+        const imgs = [...track.querySelectorAll('img')], cap = lb.querySelector('.lb-caption');
+        const n = shots.length, wrap = i => (i + n) % n;
+        let cur = 0, opener = null, busy = false;
+        const fill = () => {
+            [cur - 1, cur, cur + 1].forEach((i, k) => {
+                const a = shots[wrap(i)];
+                if (imgs[k].getAttribute('src') !== a.href) imgs[k].src = a.href;
+                imgs[k].alt = k === 1 ? (a.querySelector('img')?.alt || '') : '';
+            });
+            cap.textContent = `${imgs[1].alt}  ·  ${cur + 1} / ${n}`;
+        };
+        const slide = (x, ms) => {
+            track.style.transition = ms ? `transform ${ms}ms cubic-bezier(.2,.7,.3,1)` : 'none';
+            track.style.transform = `translateX(calc(-100% + ${x}px))`;
+        };
+        const go = dir => {
+            if (busy || !dir) return;
+            busy = true;
+            slide(-dir * stage.clientWidth, 260);
+            setTimeout(() => {
+                cur = wrap(cur + dir);
+                fill();
+                slide(0, 0);
+                busy = false;
+            }, 270);
+        };
+        const open = i => {
+            opener = document.activeElement;
+            cur = i;
+            lb.hidden = false;
+            fill();
+            slide(0, 0);
+            document.documentElement.classList.add('lb-open');
+            lb.querySelector('.lb-close').focus();
+        };
+        const close = () => {
+            lb.hidden = true;
+            document.documentElement.classList.remove('lb-open');
+            if (opener) opener.focus();
+        };
+        shots.forEach((a, i) => a.addEventListener('click', e => { e.preventDefault(); open(i); }));
+        lb.querySelector('.lb-close').addEventListener('click', close);
+        lb.querySelector('.lb-prev').addEventListener('click', () => go(-1));
+        lb.querySelector('.lb-next').addEventListener('click', () => go(1));
+        lb.addEventListener('click', e => { if (e.target === lb || e.target.classList.contains('lb-slide')) close(); });
+        document.addEventListener('keydown', e => {
+            if (lb.hidden) return;
+            if (e.key === 'Escape') close();
+            else if (e.key === 'ArrowLeft') go(-1);
+            else if (e.key === 'ArrowRight') go(1);
+            else if (e.key === 'Tab') {
+                const f = [...lb.querySelectorAll('button')];
+                const k = f.indexOf(document.activeElement);
+                e.preventDefault();
+                f[(k + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+            }
+        });
+        let x0 = null, y0 = 0, dx = 0, horiz = null;
+        stage.addEventListener('touchstart', e => {
+            if (busy || e.touches.length > 1) return;
+            x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = 0; horiz = null;
+        }, { passive: true });
+        stage.addEventListener('touchmove', e => {
+            if (x0 === null) return;
+            dx = e.touches[0].clientX - x0;
+            const dy = e.touches[0].clientY - y0;
+            if (horiz === null && Math.abs(dx) + Math.abs(dy) > 8) horiz = Math.abs(dx) > Math.abs(dy);
+            if (horiz) { e.preventDefault(); slide(dx, 0); }
+        }, { passive: false });
+        const end = () => {
+            if (x0 === null) return;
+            x0 = null;
+            if (!horiz) return;
+            if (Math.abs(dx) > Math.min(70, stage.clientWidth * .18)) go(dx < 0 ? 1 : -1);
+            else slide(0, 220);
+        };
+        stage.addEventListener('touchend', end);
+        stage.addEventListener('touchcancel', end);
+    }
     // Kausi: touko–syyskuussa nostetaan kesä, muuten talvi.
     const month = new Date().getMonth() + 1;
     const summer = month >= 5 && month <= 9;
-    if (hero && hero.dataset.winter && !summer) hero.style.backgroundImage = `url('${hero.dataset.winter}')`;
+    if (hero && hero.dataset.winter && !summer) hero.classList.add('winter');
     const seasons = document.getElementById('seasons');
     if (seasons && !summer) seasons.prepend(seasons.querySelector('[data-season="winter"]'));
 })();
 </script>"""
+
+
+# Tyylitiedoston versio sisällön perusteella: muuttunut CSS ohittaa selaimen välimuistin.
+CSS_VERSION = __import__("hashlib").sha1((ROOT / "assets" / "site.css").read_bytes()).hexdigest()[:8]
 
 
 def render(key, lang):
@@ -812,12 +934,14 @@ def render(key, lang):
     canonical = url_fi if lang == "fi" else url_en
     toplinks = "".join(
         f'<a href="{href(lang, k, lang)}"{" aria-current=\"page\"" if k == key else ""}>{NAV[lang][k]}</a>'
-        for k in ("cabin", "summer", "winter", "book"))
+        for k in ("cabin", "summer", "winter"))
     dock = "".join(
         f'<a href="{href(lang, k, lang)}" class="{"dock-book" if k == "book" else ""}"'
         f'{" aria-current=\"page\"" if k == key and k != "book" else ""}>{icon(k, "")}<span>{DOCK[lang][k]}</span></a>'
         for k in ("home", "cabin", "summer", "winter", "book"))
+    HERO_CSS.clear()
     body = BUILDERS[key](lang, p)
+    hero_css = f"<style>{''.join(HERO_CSS)}</style>" if HERO_CSS else ""
     ld = ""
     if key == "home":
         ld = f'''<script type="application/ld+json">{{"@context":"https://schema.org","@type":"VacationRental","name":"Ylläs Kajo","description":"{escape(desc)}","url":"{canonical}","image":"{SITE_URL}/assets/img/og.jpg","address":{{"@type":"PostalAddress","addressLocality":"Ylläsjärvi","postalCode":"95980","addressCountry":"FI"}},"containsPlace":{{"@type":"Accommodation","occupancy":{{"@type":"QuantitativeValue","maxValue":6}}}},"aggregateRating":{{"@type":"AggregateRating","ratingValue":"5.0","bestRating":"5","ratingCount":"5"}}}}</script>'''
@@ -845,7 +969,8 @@ def render(key, lang):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="{p}assets/site.css">
+<link rel="stylesheet" href="{p}assets/site.css?v={CSS_VERSION}">
+{hero_css}
 {ld}
 </head>
 <body>
