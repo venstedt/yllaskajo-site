@@ -233,14 +233,22 @@ def trust_block(lang):
 </div>'''
 
 
+def hero_vars(image, prefix, name="hero"):
+    """Puhelimelle nykyinen kuva, isommille näytöille tarkempi <kuva>-hero.jpg, jos sellainen on."""
+    sm = f"{prefix}assets/img/{image}.jpg"
+    lg = f"{prefix}assets/img/{image}-hero.jpg" if (ROOT / "assets" / "img" / f"{image}-hero.jpg").exists() else sm
+    return sm, lg
+
+
 def hero(title, lead, image, prefix, pill=None, actions="", short=False, winter_image=None):
     cls = "hero short" if short else "hero"
+    sm, lg = hero_vars(image, prefix)
     data = ""
     if winter_image:
-        data = (f' data-summer="{prefix}assets/img/{image}.jpg" '
-                f'data-winter="{prefix}assets/img/{winter_image}.jpg"')
+        wsm, wlg = hero_vars(winter_image, prefix)
+        data = f' data-winter="{wsm}" data-winter-lg="{wlg}"'
     p = f'<span class="pill">{pill}</span>' if pill else ""
-    return f'''<header class="{cls}" style="background-image:url('{prefix}assets/img/{image}.jpg')"{data}>
+    return f'''<header class="{cls}" style="--hero:url('{sm}');--hero-lg:url('{lg}')"{data}>
     <div class="hero-inner">
         {p}
         <h1>{title}</h1>
@@ -794,7 +802,10 @@ SCRIPT = """<script>
     // Kausi: touko–syyskuussa nostetaan kesä, muuten talvi.
     const month = new Date().getMonth() + 1;
     const summer = month >= 5 && month <= 9;
-    if (hero && hero.dataset.winter && !summer) hero.style.backgroundImage = `url('${hero.dataset.winter}')`;
+    if (hero && hero.dataset.winter && !summer) {
+        hero.style.setProperty('--hero', `url('${hero.dataset.winter}')`);
+        hero.style.setProperty('--hero-lg', `url('${hero.dataset.winterLg}')`);
+    }
     const seasons = document.getElementById('seasons');
     if (seasons && !summer) seasons.prepend(seasons.querySelector('[data-season="winter"]'));
 })();
