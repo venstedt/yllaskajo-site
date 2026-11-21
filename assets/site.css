@@ -407,36 +407,35 @@ section {
 /* Kuvien katselu sivun päällä */
 .lb-open, .lb-open body { overflow: hidden; }
 .lightbox {
-    touch-action: pan-y;
     position: fixed;
     inset: 0;
     z-index: 3000;
-    display: grid;
-    place-items: center;
-    padding: 56px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    padding: 64px 0;
     background: rgba(14, 14, 14, .96);
 }
 .lightbox[hidden] { display: none; }
-.lightbox figure {
+.lb-stage { overflow: hidden; touch-action: pan-y; }
+.lb-track { display: flex; will-change: transform; }
+.lb-slide {
     display: grid;
-    width: 100%;
-    height: 100%;
-    margin: 0;
+    flex: 0 0 100%;
     place-items: center;
-    align-content: center;
-    gap: 12px;
+    padding: 0 12px;
 }
-.lightbox img {
-    touch-action: pan-y;
-    user-select: none;
-    -webkit-user-drag: none;
+.lb-slide img {
     max-width: min(100%, 1600px);
-    max-height: calc(100vh - 150px);
-    max-height: calc(100dvh - 150px);
+    max-height: calc(100vh - 170px);
+    max-height: calc(100dvh - 170px);
     object-fit: contain;
     border-radius: 6px;
+    user-select: none;
+    -webkit-user-drag: none;
 }
-.lightbox figcaption { color: #e8e2da; font-size: .9rem; text-align: center; white-space: pre; }
+.lb-caption { margin: 0; color: #e8e2da; font-size: .9rem; text-align: center; white-space: pre; }
 .lb-btn {
     position: absolute;
     display: grid;
