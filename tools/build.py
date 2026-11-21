@@ -233,7 +233,10 @@ def trust_block(lang):
 </div>'''
 
 
-def hero_vars(image, prefix, name="hero"):
+HERO_CSS = []  # hero() kerää sivukohtaiset taustakuvat, render() kirjoittaa ne <head>-osaan
+
+
+def hero_vars(image, prefix):
     """Puhelimelle nykyinen kuva, isommille näytöille tarkempi <kuva>-hero.jpg, jos sellainen on."""
     sm = f"{prefix}assets/img/{image}.jpg"
     lg = f"{prefix}assets/img/{image}-hero.jpg" if (ROOT / "assets" / "img" / f"{image}-hero.jpg").exists() else sm
@@ -243,12 +246,17 @@ def hero_vars(image, prefix, name="hero"):
 def hero(title, lead, image, prefix, pill=None, actions="", short=False, winter_image=None):
     cls = "hero short" if short else "hero"
     sm, lg = hero_vars(image, prefix)
+    css = [f".hero{{background-image:url('{sm}')}}",
+           f"@media (min-width:700px){{.hero{{background-image:url('{lg}')}}}}"]
     data = ""
     if winter_image:
         wsm, wlg = hero_vars(winter_image, prefix)
-        data = f' data-winter="{wsm}" data-winter-lg="{wlg}"'
+        css += [f".hero.winter{{background-image:url('{wsm}')}}",
+                f"@media (min-width:700px){{.hero.winter{{background-image:url('{wlg}')}}}}"]
+        data = ' data-winter="1"'
+    HERO_CSS[:] = css
     p = f'<span class="pill">{pill}</span>' if pill else ""
-    return f'''<header class="{cls}" style="--hero:url('{sm}');--hero-lg:url('{lg}')"{data}>
+    return f'''<header class="{cls}"{data}>
     <div class="hero-inner">
         {p}
         <h1>{title}</h1>
@@ -802,10 +810,7 @@ SCRIPT = """<script>
     // Kausi: touko–syyskuussa nostetaan kesä, muuten talvi.
     const month = new Date().getMonth() + 1;
     const summer = month >= 5 && month <= 9;
-    if (hero && hero.dataset.winter && !summer) {
-        hero.style.setProperty('--hero', `url('${hero.dataset.winter}')`);
-        hero.style.setProperty('--hero-lg', `url('${hero.dataset.winterLg}')`);
-    }
+    if (hero && hero.dataset.winter && !summer) hero.classList.add('winter');
     const seasons = document.getElementById('seasons');
     if (seasons && !summer) seasons.prepend(seasons.querySelector('[data-season="winter"]'));
 })();
@@ -828,7 +833,9 @@ def render(key, lang):
         f'<a href="{href(lang, k, lang)}" class="{"dock-book" if k == "book" else ""}"'
         f'{" aria-current=\"page\"" if k == key and k != "book" else ""}>{icon(k, "")}<span>{DOCK[lang][k]}</span></a>'
         for k in ("home", "cabin", "summer", "winter", "book"))
+    HERO_CSS.clear()
     body = BUILDERS[key](lang, p)
+    hero_css = f"<style>{''.join(HERO_CSS)}</style>" if HERO_CSS else ""
     ld = ""
     if key == "home":
         ld = f'''<script type="application/ld+json">{{"@context":"https://schema.org","@type":"VacationRental","name":"Ylläs Kajo","description":"{escape(desc)}","url":"{canonical}","image":"{SITE_URL}/assets/img/og.jpg","address":{{"@type":"PostalAddress","addressLocality":"Ylläsjärvi","postalCode":"95980","addressCountry":"FI"}},"containsPlace":{{"@type":"Accommodation","occupancy":{{"@type":"QuantitativeValue","maxValue":6}}}},"aggregateRating":{{"@type":"AggregateRating","ratingValue":"5.0","bestRating":"5","ratingCount":"5"}}}}</script>'''
@@ -857,6 +864,7 @@ def render(key, lang):
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="{p}assets/site.css">
+{hero_css}
 {ld}
 </head>
 <body>

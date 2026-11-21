@@ -169,13 +169,9 @@ a:focus-visible, button:focus-visible, .btn:focus-visible {
     min-height: 92vh;
     min-height: 92svh;
     align-items: flex-end;
-    background-image: var(--hero);
     background-position: center;
     background-size: cover;
     color: var(--light);
-}
-@media (min-width: 700px) {
-    .hero { background-image: var(--hero-lg, var(--hero)); }
 }
 .hero::before {
     content: "";

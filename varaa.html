@@ -23,6 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="assets/site.css">
+<style>.hero{background-image:url('assets/img/tunturi_2.jpg')}@media (min-width:700px){.hero{background-image:url('assets/img/tunturi_2.jpg')}}</style>
 
 </head>
 <body>
@@ -34,7 +35,7 @@
     <a class="btn btn-dark btn-book" href="varaa.html">Varaa</a>
 </div>
 <span class="draft-note">LUONNOS</span>
-<header class="hero short" style="--hero:url('assets/img/tunturi_2.jpg');--hero-lg:url('assets/img/tunturi_2.jpg')">
+<header class="hero short">
     <div class="hero-inner">
         <span class="pill">Ylläs Kajo</span>
         <h1>Varaa</h1>
@@ -230,10 +231,7 @@
     // Kausi: touko–syyskuussa nostetaan kesä, muuten talvi.
     const month = new Date().getMonth() + 1;
     const summer = month >= 5 && month <= 9;
-    if (hero && hero.dataset.winter && !summer) {
-        hero.style.setProperty('--hero', `url('${hero.dataset.winter}')`);
-        hero.style.setProperty('--hero-lg', `url('${hero.dataset.winterLg}')`);
-    }
+    if (hero && hero.dataset.winter && !summer) hero.classList.add('winter');
     const seasons = document.getElementById('seasons');
     if (seasons && !summer) seasons.prepend(seasons.querySelector('[data-season="winter"]'));
 })();
