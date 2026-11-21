@@ -882,6 +882,10 @@ SCRIPT = """<script>
 </script>"""
 
 
+# Tyylitiedoston versio sisällön perusteella: muuttunut CSS ohittaa selaimen välimuistin.
+CSS_VERSION = __import__("hashlib").sha1((ROOT / "assets" / "site.css").read_bytes()).hexdigest()[:8]
+
+
 def render(key, lang):
     fi_name, en_name = PAGES[key]
     p = "" if lang == "fi" else "../"
@@ -928,7 +932,7 @@ def render(key, lang):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="{p}assets/site.css">
+<link rel="stylesheet" href="{p}assets/site.css?v={CSS_VERSION}">
 {hero_css}
 {ld}
 </head>
