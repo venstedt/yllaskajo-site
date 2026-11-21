@@ -812,7 +812,7 @@ def render(key, lang):
     canonical = url_fi if lang == "fi" else url_en
     toplinks = "".join(
         f'<a href="{href(lang, k, lang)}"{" aria-current=\"page\"" if k == key else ""}>{NAV[lang][k]}</a>'
-        for k in ("cabin", "summer", "winter", "book"))
+        for k in ("cabin", "summer", "winter"))
     dock = "".join(
         f'<a href="{href(lang, k, lang)}" class="{"dock-book" if k == "book" else ""}"'
         f'{" aria-current=\"page\"" if k == key and k != "book" else ""}>{icon(k, "")}<span>{DOCK[lang][k]}</span></a>'
