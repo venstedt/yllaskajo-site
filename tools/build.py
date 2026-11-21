@@ -419,7 +419,7 @@ def page_cabin(lang, p):
             ("yllas-kajo-1", "Ylläs Kajo ja varasto kesällä" if fi else "Ylläs Kajo and storage in summer", "wide"),
             ("yllas-kajo-5", "Talo kesällä" if fi else "The house in summer", ""),
             ("yllas-kajo-2", "Lukittava varasto" if fi else "Lockable storage", ""),
-            ("kajo_valot", "Talvi-ilta" if fi else "Winter evening", ""),
+            ("kajo_valot", "Syysilta" if fi else "Autumn evening", ""),
             ("revot_3", "Revontulet mökin yllä" if fi else "Northern lights above the cabin", ""),
         ]),
     ]
