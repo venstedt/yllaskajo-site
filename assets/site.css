@@ -407,6 +407,7 @@ section {
 /* Kuvien katselu sivun päällä */
 .lb-open, .lb-open body { overflow: hidden; }
 .lightbox {
+    touch-action: pan-y;
     position: fixed;
     inset: 0;
     z-index: 3000;
@@ -426,6 +427,9 @@ section {
     gap: 12px;
 }
 .lightbox img {
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-drag: none;
     max-width: min(100%, 1600px);
     max-height: calc(100vh - 150px);
     max-height: calc(100dvh - 150px);
